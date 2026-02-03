@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Células — Encontrar a mais próxima</title>
+  <meta name="description" content="Digite seus dados e encontre automaticamente a célula mais próxima." />
+  <style>
+    :root{
+      --c1:#ff3300;
+      --c2:#ffa05a;
+      --text:#000;
+      --muted:rgba(0,0,0,.75);
+      --border:rgba(0,0,0,.25);
+      --panel:rgba(255,255,255,.92);
+      --btn:#000;
+      --btnText:#fff;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:linear-gradient(90deg, var(--c1), var(--c2));
+      min-height:100vh;
+    }
+    header, main, footer{
+      max-width:1040px;
+      margin:0 auto;
+      padding:26px 18px;
+    }
+    .title{
+      font-family: "Segoe Script", "Brush Script MT", "Comic Sans MS", cursive;
+      font-weight:400;
+      letter-spacing:.2px;
+      font-size:56px;
+      line-height:1.05;
+      margin:6px 0 10px;
+    }
+    .sub{
+      margin:0;
+      color:var(--muted);
+      font-size:15px;
+      line-height:1.45;
+      max-width:70ch;
+    }
+    .wrap{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:16px;
+    }
+    @media (min-width:920px){
+      .wrap{grid-template-columns:1.15fr .85fr;}
+    }
+    .card{
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:18px;
+      box-shadow: 0 12px 30px rgba(0,0,0,.10);
+    }
+    h2{margin:0 0 10px; font-size:18px}
+    label{display:block; font-weight:700; font-size:13px; margin:10px 0 6px;}
+    input, textarea{
+      width:100%;
+      border-radius:14px;
+      border:1px solid var(--border);
+      padding:12px 12px;
+      background:#fff;
+      color:#000;
+      outline:none;
+      font-size:14px;
+    }
+    textarea{min-height:92px; resize:vertical;}
+    .grid{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:10px;
+    }
+    @media (min-width:560px){
+      .grid{grid-template-columns:1fr 1fr;}
+      .row2{grid-column:1/-1;}
+    }
+    .check{
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      font-size:13px;
+      line-height:1.35;
+      border:1px dashed var(--border);
+      border-radius:14px;
+      padding:12px;
+      background:rgba(255,255,255,.85);
+      margin-top:10px;
+    }
+    .check input{margin-top:2px}
+    .actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:12px;
+    }
+    button{
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:12px 14px;
+      font-weight:900;
+      cursor:pointer;
+      background:var(--btn);
+      color:var(--btnText);
+    }
+    button.secondary{
+      background:rgba(255,255,255,.75);
+      color:#000;
+    }
+    .hint{
+      margin-top:10px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.4;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      border:1px solid var(--border);
+      border-radius:999px;
+      padding:8px 10px;
+      background:rgba(255,255,255,.85);
+      font-weight:900;
+      font-size:13px;
+    }
+    .kv{margin-top:10px; line-height:1.55}
+    .kv b{display:inline-block; min-width:92px}
+    a.btn{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:12px 14px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      text-decoration:none;
+      font-weight:900;
+      background:rgba(255,255,255,.75);
+      color:#000;
+    }
+    footer{
+      padding-top:4px;
+      color:rgba(0,0,0,.7);
+      font-size:12px;
+      text-align:center;
+    }
+    .brand{
+      font-family:"Segoe Script","Brush Script MT","Comic Sans MS",cursive;
+      font-size:28px;
+      margin-top:6px;
+    }
+    code{background:rgba(255,255,255,.75); padding:2px 6px; border-radius:10px; border:1px solid var(--border);}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="title">Há uma Célula<br/>perto de Você!</div>
+    <p class="sub">Preencha seus dados para que nossa equipe te ajude a encontrar uma célula. Você só continua após confirmar o consentimento.</p>
+  </header>
+
+  <main class="wrap">
+    <section class="card">
+      <h2>Seus dados</h2>
+      <form id="form" class="grid" autocomplete="on">
+        <div>
+          <label for="nome">Nome</label>
+          <input id="nome" name="nome" placeholder="Seu nome" required />
+        </div>
+        <div>
+          <label for="telefone">Telefone (WhatsApp)</label>
+          <input id="telefone" name="telefone" placeholder="55 + DDD + número" required />
+        </div>
+        <div class="row2">
+          <label for="endereco">Endereço completo</label>
+          <textarea id="endereco" name="endereco" placeholder="Rua, número, bairro, cidade - UF" required></textarea>
+        </div>
+
+        <div class="row2 check">
+          <input type="checkbox" id="consent" required />
+          <label for="consent">
+            Concordo que meus dados (nome, telefone e endereço) sejam enviados para a equipe da igreja
+            com a finalidade exclusiva de me auxiliar a encontrar uma célula.
+          </label>
+        </div>
+
+        <div class="row2 actions">
+          <button type="submit">Encontrar célula</button>
+          <button type="button" id="btnGeo" class="secondary">Usar minha localização (GPS)</button>
+        </div>
+
+        <div class="row2 hint">
+          <b>Configuração:</b> edite <code>WHATSAPP_DESTINO</code> e preencha <code>CELULAS</code> com <code>lat</code> e <code>lng</code>.
+        </div>
+      </form>
+    </section>
+
+    <section class="card" aria-live="polite">
+      <h2>Resultado</h2>
+      <div id="status" class="hint">Preencha o formulário para ver a célula mais próxima.</div>
+
+      <div id="resultado" style="display:none; margin-top:10px">
+        <div class="pill" id="distPill">📏 —</div>
+        <div class="kv" id="celulaInfo"></div>
+        <div style="margin-top:14px">
+          <a id="btnMapa" class="btn" target="_blank" rel="noopener">🗺️ Abrir no mapa</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="brand">ipae</div>
+  </footer>
+
+<script>
+  // ========= CONFIGURE AQUI =========
+  const WHATSAPP_DESTINO = "55XXXXXXXXXXX";
+  const CELULAS = [
+    // {
+    //   nome: "Célula Centro",
+    //   lider: "João e Maria",
+    //   endereco: "Rua Exemplo, 123 - Centro, Cidade - UF",
+    //   dia: "Quarta",
+    //   hora: "20:00",
+    //   lat: -22.9035,
+    //   lng: -43.2096
+    // },
+  ];
+  // =================================
+
+  const $ = (id) => document.getElementById(id);
+
+  function digits(s){ return (s||"").toString().replace(/\D/g,''); }
+
+  function haversineKm(lat1, lon1, lat2, lon2){
+    const R = 6371;
+    const toRad = d => d * Math.PI / 180;
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a = Math.sin(dLat/2)**2 +
+              Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+              Math.sin(dLon/2)**2;
+    return 2 * R * Math.asin(Math.sqrt(a));
+  }
+
+  async function geocodeEndereco(endereco){
+    const url = "https://nominatim.openstreetmap.org/search?format=json&limit=1&q=" + encodeURIComponent(endereco);
+    const resp = await fetch(url);
+    if(!resp.ok) throw new Error("Falha ao consultar endereço (internet/serviço).");
+    const data = await resp.json();
+    if(!data || !data.length) throw new Error("Endereço não encontrado. Tente completar com bairro/cidade/UF.");
+    return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+  }
+
+  function acharMaisProxima(ponto){
+    if(!CELULAS.length) throw new Error("Nenhuma célula cadastrada. Edite o arquivo e preencha o array CELULAS.");
+    const ranked = CELULAS
+      .filter(c => typeof c.lat === "number" && typeof c.lng === "number")
+      .map(c => ({...c, distKm: haversineKm(ponto.lat, ponto.lng, c.lat, c.lng)}))
+      .sort((a,b) => a.distKm - b.distKm);
+    if(!ranked.length) throw new Error("As células precisam ter lat/lng preenchidos.");
+    return ranked[0];
+  }
+
+  function montarMensagem(payload, celula){
+    return [
+      "📌 NOVO CONTATO - CÉLULAS",
+      "",
+      `👤 Nome: ${payload.nome}`,
+      `📞 Telefone: ${payload.telefone}`,
+      `🏠 Endereço: ${payload.endereco}`,
+      "",
+      "✅ CÉLULA MAIS PRÓXIMA",
+      `🏡 Célula: ${celula.nome}`,
+      `👥 Líder: ${celula.lider || "-"}`,
+      `📍 Endereço: ${celula.endereco}`,
+      `🗓️ Dia/Hora: ${celula.dia || "-"} • ${celula.hora || "-"}`,
+      `📏 Distância aprox.: ${celula.distKm.toFixed(1)} km`
+    ].join("\n");
+  }
+
+  function waLink(destino, mensagem){
+    const num = digits(destino);
+    return "https://wa.me/" + num + "?text=" + encodeURIComponent(mensagem);
+  }
+
+  function renderResultado(c){
+    $("status").textContent = "Célula mais próxima encontrada:";
+    $("resultado").style.display = "block";
+    $("distPill").textContent = "📏 " + c.distKm.toFixed(1) + " km (aprox.)";
+    $("celulaInfo").innerHTML = `
+      <div><b>Célula:</b> ${c.nome}</div>
+      <div><b>Líder:</b> ${c.lider || "-"}</div>
+      <div><b>Dia/Hora:</b> ${c.dia || "-"} • ${c.hora || "-"}</div>
+      <div><b>Endereço:</b> ${c.endereco}</div>
+    `;
+    $("btnMapa").href = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(c.endereco);
+  }
+
+  async function processar(ponto, payload){
+    $("status").textContent = "Calculando célula mais próxima…";
+    const celula = acharMaisProxima(ponto);
+    renderResultado(celula);
+
+    const msg = montarMensagem(payload, celula);
+    const link = waLink(WHATSAPP_DESTINO, msg);
+
+    // Abre o WhatsApp para a equipe da igreja (o usuário confirma o envio no WhatsApp)
+    window.open(link, "_blank", "noopener");
+  }
+
+  $("form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    if(!$("consent").checked){
+      $("status").textContent = "Marque o consentimento para continuar.";
+      return;
+    }
+
+    const payload = {
+      nome: $("nome").value.trim(),
+      telefone: $("telefone").value.trim(),
+      endereco: $("endereco").value.trim()
+    };
+
+    if(!payload.nome || !payload.telefone || !payload.endereco){
+      $("status").textContent = "Preencha nome, telefone e endereço.";
+      return;
+    }
+
+    try{
+      $("status").textContent = "Localizando seu endereço…";
+      const ponto = await geocodeEndereco(payload.endereco);
+      await processar(ponto, payload);
+    }catch(err){
+      $("status").textContent = "❌ " + (err?.message || "Erro ao processar. Tente novamente.");
+      $("resultado").style.display = "none";
+    }
+  });
+
+  $("btnGeo").addEventListener("click", async () => {
+    if(!$("consent").checked){
+      $("status").textContent = "Marque o consentimento para usar GPS.";
+      return;
+    }
+
+    const payload = {
+      nome: $("nome").value.trim(),
+      telefone: $("telefone").value.trim(),
+      endereco: $("endereco").value.trim() || "(endereço não informado — usando GPS)"
+    };
+
+    if(!payload.nome || !payload.telefone){
+      $("status").textContent = "Para usar GPS, preencha pelo menos nome e telefone.";
+      return;
+    }
+
+    if(!navigator.geolocation){
+      $("status").textContent = "Geolocalização não suportada neste dispositivo.";
+      return;
+    }
+
+    $("status").textContent = "Solicitando permissão de GPS…";
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      try{
+        const ponto = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        await processar(ponto, payload);
+      }catch(err){
+        $("status").textContent = "❌ " + (err?.message || "Erro ao processar com GPS.");
+        $("resultado").style.display = "none";
+      }
+    }, () => {
+      $("status").textContent = "Não foi possível obter o GPS. Você pode digitar o endereço e tentar novamente.";
+    }, { enableHighAccuracy: true, timeout: 12000 });
+  });
+</script>
+</body>
+</html>
